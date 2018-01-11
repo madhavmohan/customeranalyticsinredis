@@ -1,0 +1,403 @@
+1. installed redis
+2. installed redis java client in eclipse
+3. inserted  the data into seperate sets or sorted sets according to the query requirement of the workshop such that the query takes less time to execute when 
+executed through java client.
+
+
+
+
+sets needed depending on the query output which are created during insertion of user data. The  segmentation was done to optimize the easy retrieval of content of a user.
+
+
+1. insert the user data into user hash with required fields
+
+
+2. 
+
+additionally 
+------------
+
+1. 
+
+ user:registered
+
+value: userids of registered users
+2. 
+
+
+ user:anonymous
+
+value:userids of anonymous users
+
+3. 
+
+
+ user:subscribed
+value:userids of subscribed users
+
+
+4. 
+
+user:18to30
+
+value:userids of users between 18 and 30 ages
+
+5. 
+
+user:30to40
+value:userids of users between 30 and 40 ages
+
+6.
+user:40to50
+value:userids of users between 40 and 50 ages
+
+7. 
+user:50to60
+value:userids of users between 50 and 60 ages
+
+8. 
+
+user:india
+value:userids of users with india as their country
+9.
+user:usa
+value:userids of users with usa as their country
+10.
+user:china
+value:userids of users with china as their country
+11.
+user:nepal 
+value:userids of users with nepal as their country
+12.
+user:pakistan
+value:userids of users with pakistan as their country
+13.
+user:bhutan
+value:userids of users with bhutan as their country
+14.
+user:italy
+value:userids of users with italy as their country
+15.
+user:spain
+value:userids of users with spain as their country
+16.
+user:portugal
+value:userids of users with portugal as their country
+17.
+user:germany
+value:userids of users with germany as their country
+18.
+user:male
+value:userids of users with male as their gender
+19.
+user:female
+value:userids of users with female as their gender
+
+
+
+
+sets for easy query purposes, set the values and increment when needed
+-------------------------------------------------------------------
+
+
+contentview
+
+set <userid>:view
+
+set <userid>:view:<contentid>
+	
+set <userid>:view:<contentid>:<month>:<day>
+set <userid>:view:<month>:<day>
+
+
+contentplay
+
+set <userid>:play
+
+set <userid>:play:<contentid>
+
+set <userid>:play:<contentid>:<month>:<day>
+set <userid>:play:<month>:<day>
+
+
+
+
+
+
+
+
+search
+
+set <userid>:search
+
+set <userid>:search:cabbage
+
+set <userid>:search:carrot
+
+set <userid>:search:beetroot
+
+set <userid>:search:cricket
+set <userid>:search:football
+set <userid>:search:athletics
+
+set <userid>:search:cinema
+set <userid>:search:poetry
+set <userid>:search:story
+set <userid>:search:writing
+
+
+set <userid>:search:<month>:<day>:cabbage
+
+set <userid>:search:<month>:<day>:carrot
+
+set <userid>:search:<month>:<day>:beetroot
+
+set <userid>:search:<month>:<day>:cricket
+set <userid>:search:<month>:<day>:football
+set <userid>:search:<month>:<day>:athletics
+
+set <userid>:search:<month>:<day>:cinema
+set <userid>:search:<month>:<day>:poetry
+set <userid>:search:<month>:<day>:story
+set <userid>:search:<month>:<day>:writing
+
+
+
+session
+
+
+set <userid>:session
+set <userid>:session:duration
+set <userid>:session:month:day:duration
+
+
+
+
+purchase
+
+set <userid>:purchase
+
+set <userid>:purchase:amount
+set <userid>:purchase:month:day:amount
+
+
+
+
+
+1.
+
+All registered user who has played a particular content in a specified date range
+
+
+ let the content id be 9 
+ time range be 5 to 10.
+
+
+	1. get registered users from user:registered in an array reguser[]
+	   // 5 to 10 is constant hence not of n2 complexity
+	2. if <reguser[i]>:play:dec:5:9 to <reguser[i]>:play:dec:10:9  is set
+		select that user id
+		break;
+	   else 
+		ignore the user id
+
+	3. select  user ids and get the information from userdata hash or take count by incrementing a counter
+
+
+ 
+
+2. All anonymous users who has session duration greater than x mins
+
+
+	1. get anonymouse users into array anonuser[]
+
+	//constant times 
+	2. if <anonuser[i]>:session:duration(10 to 50) is set
+	    	select that user id
+	   else
+		ignore that user id
+
+	3. select  user ids and get the information from userdata hash or take count by incrementing a counter
+
+
+3. Anonymous users between age 18 to 40, located in India or China or USA, who has done at least 10 content views
+
+
+
+	1. execute zinterstore user:anonymous, user:age18to40, user:india,user:china , user:usa 
+	2. get the elements into the array temparr
+	3. if <temparr[i]>:view >=10
+	   	select that userid
+	   else 
+		ignore the userid 
+	4. select  user ids and get the information from userdata hash or take count by incrementing a counter
+
+
+4. All subscribed users who has not done any content playback action in past 1 month
+
+
+	1. get subscribed users into array subuser[]
+	2. if <subuser[i]>:play ==0 
+	 	selec the user id
+	   else 
+		ignore the user id 
+	3.   select  user ids and get the information from userdata hash or take count by incrementing a counter
+
+5.Users who did more than 5 content view for a particular content but has not played the content
+
+let particular content be 9
+
+	1. get user ids from 1 to 100000 into userarr[]
+	2. if <userarr[i]>:view:9 >5
+		selec user id into temparr[]
+	   else
+		ignore the user id
+	3. if <temparr[i]>:play:9 is not set 
+	       select the user id
+	   else 
+		ignore the user id
+
+
+	4.  select  user ids and get the information from userdata hash or take count by incrementing a counter
+
+
+
+
+
+EXPECTED OUTPUT
+
+
+
+1.     Estimated Reach for the above queries with Total Count which is further split into count per age groups ( 18-30, 30-40,40-50,50-60), per gender type, user status ( Anonymous, Registered, Subscribers ), % split per country
+ 
+
+
+
+
+for the above queries
+
+1. do a zinterstore with  userids obtained in the last step and the respective user segment
+
+
+example:
+count1=count(set1)
+
+  zinterstore newkey count1 set1 user:18to30
+  zinterstore newkey1 count1 set1 user:30to40
+  zinterstore newkey2 count1  set1 user:40to50
+  zinterstore newkey3 count1 set1  user:50to60
+  zinterstore newkey4 count1 set1  user:female
+  zinterstore newkey5 count1 set1 user:male
+  zinterstore newkey6 count1 set1 user:anonymous
+  zinterstore newkey7 count1 set1 user:registered
+  zinterstore newkey8  count1 set1 user:subscribed
+  zinterstore newkey9 count1 set1 user:india 
+  zinterstore newkey10 count1 set1 user:usa
+  zinterstore newkey11 count1 set1 user:china
+  zinterstore newkey12 count1 set1 user:nepal
+  zinterstore newkey13 count1 set1 user:pakistan
+  zinterstore newkey14 count1 set1 user:bhutan
+  zinterstore newkey15 count1 set1 user:italy
+  zinterstore newkey16 count1 set1 user:spain
+  zinterstore newkey17 count1 set1 user:portugal
+  zinterstore newkey18 count1 set1 user:germany
+
+  
+  user group 18to 30
+  ------------------
+  display count(newkey) 
+
+ user group 30 to 40
+  ------------------
+  display count(newkey1) 
+
+ user group 40 to 50
+  ------------------
+  display count(newkey2) 
+
+user group 50 to 60
+  ------------------
+  display count(newkey3) 
+
+
+user group female
+  ------------------
+  display count(newkey4) 
+
+user group male
+  ------------------
+  display count(newkey5) 
+
+user group anonymous
+  ------------------
+  display count(newkey6) 
+
+user group registered
+  ------------------
+  display count(newkey7) 
+
+user group subscribed
+  ------------------
+  display count(newkey8) 
+
+user group india
+  ------------------
+  display count(newkey9) /count(newkey9 + .. .newkey18)
+
+user group usa
+  ------------------
+  display count(newkey10) /count(newkey9 + .. .newkey18)
+
+user group china
+  ------------------
+  display count(newkey11) /count(newkey9 + .. .newkey18)
+
+user group nepal
+  ------------------
+  display count(newkey12) /count(newkey9 + .. .newkey18)
+
+
+user group pakistan
+  ------------------
+  display count(newkey13) /count(newkey9 + .. .newkey18)
+
+user group bhutan
+  ------------------
+  display count(newkey14) /count(newkey9 + .. .newkey18)
+
+user group italy
+  ------------------
+  display count(newkey15) /count(newkey9 + .. .newkey18)
+
+
+user group spain
+  ------------------
+  display count(newkey16) /count(newkey9 + .. .newkey18)
+
+user group portugal 
+  ------------------
+  display count(newkey17) /count(newkey9 + .. .newkey18)
+
+user group germany
+  ------------------
+  display count(newkey18) /count(newkey9 + .. .newkey18)
+
+
+2. repeat for remaining queries
+
+
+
+
+4. Do consider the below use cases while putting together the solution:
+
+
+
+
+        How will you validate if a user belongs to a segment or not ?
+		if one wants to validate the t
+
+-        How will you identify correlation patterns between different cohorts ? Eg: Users within the age group of 18-20 has higher affinity to playback comedy content.
+		check the intersection between 
+-        How will you predict if a user has a higher probability of falling into a particular segment ? 
+
+	
